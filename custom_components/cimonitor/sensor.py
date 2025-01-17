@@ -15,21 +15,17 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info 
 
     client = socketio.AsyncClient()
 
-    @client.on("status-state-change")
-    async def on_status_state_change(data):
+    @client.on("global-state-change")
+    async def on_status_state_change(status):
         try:
-            _LOGGER.debug("Received event 'status-state-change' with data: %s", data)
-            if isinstance(data, dict):
-                status = data.get("state")
-                if status:
-                    _LOGGER.info("Status received: %s", status)
-                    sensor.update_status(status)
-                else:
-                    _LOGGER.warning("Received 'status-state-change' event without a state field")
+            _LOGGER.debug("Received event 'status-state-change' with data: %s", status)
+            if isinstance(status, str):
+                _LOGGER.info("Status received: %s", status)
+                sensor.update_status(status)
             else:
-                _LOGGER.warning("Received non-dict data for 'status-state-change': %s", data)
+                _LOGGER.warning("Received non-string data for 'global-state-change': %s", status)
         except Exception as e:
-            _LOGGER.error("Error handling 'status-state-change' event: %s", e)
+            _LOGGER.error("Error handling 'global-state-change' event: %s", e)
 
     async def connect_socket(_socketio_url):
         try:
